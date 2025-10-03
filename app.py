@@ -48,7 +48,8 @@ def tcp_check(host: str, port: int = 443, timeout: int = 2):
 
 @app.route("/ping")
 def ping_handler():
-    if request.headers.get("Authorization") != os.getenv("AUTH_TOKEN"):
+    auth_header = request.headers.get("Authorization")
+    if auth_header != os.getenv("AUTH_TOKEN"):
         return jsonify({"ok": False, "error": "unauthorized"}), 401
 
     target = request.args.get("target", "").strip()
@@ -64,8 +65,13 @@ def ping_handler():
         ok, avg = tcp_check(target, 443)
         method = "tcp:443"
 
-    return jsonify({"ok": ok, "method": method, "avg_ms": avg, "target": target})
-
+    return jsonify({
+        "ok": ok,
+        "method": method,
+        "avg_ms": avg,
+        "target": target
+    })
+    
 if __name__ == "__main__":
     from waitress import serve
     serve(app, host="0.0.0.0", port=5000)
